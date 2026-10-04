@@ -1,0 +1,124 @@
+function qap_diagram()
+%QAP diagram
+%
+%Description
+% Uses alchemyst/ternplot (Sandrock, 2026) to construct a ternary plot
+% and then adds the appropriate labels for a QAP diagram. That is, a
+% special ternary plot used by mineralogists to map the compositions of
+% quartz (Q), alkali feldspar (A), and plagioclase feldspar (P) in igneous
+% rock samples. 
+%
+% Please note that the ternplot function does not take Q-A-P in order;
+% rather, to get a proper QAP visualization, the user needs to call
+% ternplot with this syntax: ternplot(A,P,Q,varargin).
+%
+% In addition, please note that the qap_diagram function automatically
+% turns plot holding 'on'.
+%
+%
+%Example: 
+% Plot the position of granodiorite with a composition of 
+% 30% quartz, 18% alkali feldspar, and 52% plagioclase on 
+% a QAP diagram
+%
+% >> quartz = 30;
+% >> kspar = 18;
+% >> plag = 52;
+% >> qap_diagram()
+% >> ternplot(kspar, plag, quartz, 'kd', 'MarkerFaceColor','r')
+%
+%See aslo
+% ternplot
+
+  % Create axes
+  ternplot(1,1,1);
+
+  % Update figure size so that labels fall in the correct positions
+  f = gcf;
+  f.Units='pixels';
+  f.Position=[125 125 894 544];
+
+  % Remove gridlines
+  gridlines = findall(gcf,'Type','Line');
+  [gridlines.LineStyle] = deal('none');
+
+  % Add QAP axes labels
+  ternlabel({' ','Alkali Feldspar'}, {'Plagioclase',' ',' '}, {'Quartz',' ',' '});
+
+  % Add granite QAP divider lines
+  hold on
+    sty = {'-','LineWidth',0.5,'Color',[0.25 0.25 0.25]};
+    % Add quartz lines
+    for q = [5 20 60 90]
+      drawLine(q,0, q,1, sty);
+    end
+    % Add feldspar lines
+    for f = [0.10 0.35 0.65 0.90]
+      if f==0.65
+        drawLine(0,f, 20,f, sty);
+      else
+        drawLine(0,f, 60,f, sty);
+      end
+    end
+
+  % Add rock type labels (SEE LINE 226)
+  rock_names = {'Q5',{'quartz-rich','granitoid'},'alkali feldspar granite',...
+    'granite','granodiorite','tonalite','Q2','quartz syenite','quartz monzonite',...
+    {'quartz','monzodiorite'},'Q4','Q1','syenite','monzonite','monzodiorite','Q3'};
+  positions = [0.494407158836688 0.817181818181819 0.0447427293064876 0.0463821892393321;...
+               0.469798657718121 0.655771799628942 0.0950782997762863 0.0760667903525046;...
+               0.344519015659955 0.277293135435994 0.1661073825503360 0.0463821892393321;...
+               0.442375776436328 0.385865862708720 0.0704697986577181 0.0463821892393321;...
+               0.580418344519016 0.376623376623377 0.0582841163310962 0.0575139146567717;...
+               0.640939597315436 0.449834879406309 0.0732662192393736 0.0463821892393321;...
+               0.277404921700224 0.177107606679036 0.0447427293064877 0.0463821892393321;...
+               0.323266219239374 0.178962894248609 0.1180089485458610 0.0463821892393321;...
+               0.447427293064877 0.180818181818182 0.1392617449664430 0.0463821892393321;...
+               0.595637583892617 0.162265306122449 0.1101789709172260 0.0826326530612244;...
+               0.708053691275168 0.182673469387755 0.0447427293064877 0.0463821892393321;...
+               0.253914988814317 0.102896103896104 0.0447427293064877 0.0463821892393321;...
+               0.334451901565996 0.104751391465677 0.0721476510067114 0.0463821892393321;...
+               0.469798657718121 0.104751391465677 0.0939597315436242 0.0463821892393321;...
+               0.609619686800895 0.104751391465678 0.1101789709172260 0.0463821892393321;...
+               0.736017897091722 0.102896103896104 0.0447427293064877 0.0463821892393321];
+  rotations = [0 0 64 0 0 -65 0 0 0 0 0 0 0 0 0 0];
+  for i = 1:length(rock_names)
+    addRockLabels(rock_names{i}, positions(i,:), rotations(i))
+  end
+
+end
+
+%
+% Local functions
+%
+function drawLine(q1,f1,q2,f2,sty)
+  % q1 = quartz coordinate start point
+  % q2 = quartz coordinate end point
+  % f1 = feldspar coordinate start point
+  % f2 = feldspar coordinate end point
+  % sty = line style, e.g., {'--r','LineWidth',1}
+  q_coords = [q1 q2];  
+  f_coords = [f1 f2];
+  a_coords = f_coords.*(100-q_coords);
+  p_coords = (1-f_coords).*(100-q_coords);
+  ternplot(a_coords, p_coords, q_coords, sty{:});
+end
+function addRockLabels(rock_name_string, position, rotation)
+  if nargin==2
+    annotation(gcf,'Textbox',position,...
+                'String',rock_name_string,...
+                'HorizontalAlignment','center',...
+                'EdgeColor','none',...
+                'Color',[0.65 0.65 0.65])
+  elseif nargin==3
+    annotation(gcf,'Textbox',position,...
+      'String',rock_name_string,...
+      'HorizontalAlignment','center',...
+      'EdgeColor','none',...
+      'Color',[0.65 0.65 0.65],...
+      'Rotation',rotation)
+  end
+end
+%
+% End local functions
+%
