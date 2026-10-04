@@ -1,4 +1,4 @@
-function qap_diagram(varargin)
+function qap_objects = qap_diagram(varargin)
 %QAP diagram
 %
 %Description
@@ -30,6 +30,26 @@ function qap_diagram(varargin)
 %   VertexLabels  'off'
 %   --------------------------------------------------------------
 %
+%Output Arguments
+% Specify an output argument to save a struct that contains each
+% of the figure handle objects (axes labels, dividing lines, 
+% gridlines, tick labels, and rock types).
+%
+%   >> H = qap_diagram();
+%
+% You can then modify the objects stored in `H` after the plot is
+% already generated. For example, you can change the weight of the 
+% quartz axis label by doing this:
+% 
+%   >> H.AxesLabels.Quartz.FontWeight = 'bold';
+%
+% If you want to change multiple objects in a single line, you will
+% need to bracket the objects like they are an array, and then dist-
+% ribute your changes using the deal() function. For example, you can
+% change all of the tick labels to red by doing this:
+%
+% [H.TickLabels.Color] = deal('r');
+%
 %
 %Example: 
 % Plot the position of granodiorite with a composition of 
@@ -46,6 +66,11 @@ function qap_diagram(varargin)
 %See aslo
 % ternplot
 
+% Copyright 2026 Austin M. Weber
+
+%
+% Begin main function
+%
   % Input parsing
   P = inputParser();
   addParameter(P,'FontColor',    [0.65 0.65 0.65], @(x) (isnumeric(x) & isequal(size(x),[1 3])) | (ischar(x) & length(x)==7) & strcmp(x(1),'#'));
@@ -60,7 +85,7 @@ function qap_diagram(varargin)
   VertLabel = P.Results.VertexLabels;
   
   % Create axes
-  ternplot(1,1,1);
+  ternplot(1,1,1,'HandleVisibility','off');
 
   % Update figure size so that labels fall in the correct positions
   f = gcf;
@@ -95,7 +120,7 @@ function qap_diagram(varargin)
       end
     end
 
-  % Add rock type labels
+  % Add rock type labels (SEE LINE 226)
   rock_names = {'Q5',{'quartz-rich','granitoid'},'alkali feldspar granite',...
     'granite','granodiorite','tonalite','Q2','quartz syenite','quartz monzonite',...
     {'quartz','monzodiorite'},'Q4','Q1','syenite','monzonite','monzodiorite','Q3'};
@@ -120,7 +145,70 @@ function qap_diagram(varargin)
     addRockLabels(rock_names{i}, positions(i,:), rotations(i), FontColor)
   end
 
+  % Make the axes labels bold
+  txt_objects = findall(gcf,'Type','Text');
+  [txt_objects(1:3).FontWeight] = deal('bold');
+
+  if nargout == 1
+  %Save axes objects so that they can be modified later
+    %Axes labels 
+      Q_text = txt_objects(1);
+      P_text = txt_objects(2);
+      A_text = txt_objects(3);
+    %Tick labels
+      tick_text = txt_objects(4:end-2);
+    %Annotations
+      ann_pane = findall(gcf,'Type','Annotation');
+      ann_objects = ann_pane.Children;
+      Q3_text = ann_objects(1);
+      Monzodiorite_text = ann_objects(2);
+      Monzonite_text = ann_objects(3);
+      Syenite_text = ann_objects(4);
+      Q1_text = ann_objects(5);
+      Q4_text = ann_objects(6);
+      QuartzMonzodiorite_text = ann_objects(7);
+      QuartzMonzonite_text = ann_objects(8);
+      QuartzSyenite_text = ann_objects(9);
+      Q2_text = ann_objects(10);
+      Tonalite_text = ann_objects(11);
+      Granodiorite_text = ann_objects(12);
+      Granite_text = ann_objects(13);
+      AlkaliFeldsparGranite_text = ann_objects(14);
+      QuartzRichGranitoid_text = ann_objects(15);
+      Q5_text = ann_objects(16);
+    %Dividing lines
+      line_objects = findall(gcf,'Type','Line');
+      DividingLines = line_objects(1:8);
+    %Store everything in a struct
+      qap_objects.AxesLabels.AlkaliFeldspar = A_text;
+      qap_objects.AxesLabels.Plagioclase = P_text;
+      qap_objects.AxesLabels.Quartz = Q_text;
+      qap_objects.DividingLines = DividingLines;
+      qap_objects.GridLines = gridlines;
+      qap_objects.RockTypes.AlkaliFeldsparGranite = AlkaliFeldsparGranite_text;
+      qap_objects.RockTypes.Granite = Granite_text;
+      qap_objects.RockTypes.Granodiorite = Granodiorite_text;
+      qap_objects.RockTypes.Monzodiorite = Monzodiorite_text;
+      qap_objects.RockTypes.Monzonite = Monzonite_text;
+      qap_objects.RockTypes.Syenite = Syenite_text;
+      qap_objects.RockTypes.Tonalite = Tonalite_text;
+      qap_objects.RockTypes.QuartzMonzodiorite = QuartzMonzodiorite_text;
+      qap_objects.RockTypes.QuartzMonzonite = QuartzMonzonite_text;
+      qap_objects.RockTypes.QuartzRichGranitoid = QuartzRichGranitoid_text;
+      qap_objects.RockTypes.QuartzSyenite = QuartzSyenite_text;
+      qap_objects.RockTypes.Q1 = Q1_text;
+      qap_objects.RockTypes.Q2 = Q2_text;
+      qap_objects.RockTypes.Q3 = Q3_text;
+      qap_objects.RockTypes.Q4 = Q4_text;
+      qap_objects.RockTypes.Q5 = Q5_text;
+      qap_objects.TickLabels = tick_text;
+
+  end %End nargout statements 
+      
 end
+%
+% End main function
+%
 
 %
 % Local functions
@@ -135,7 +223,8 @@ function drawLine(q1,f1,q2,f2,sty)
   f_coords = [f1 f2];
   a_coords = f_coords.*(100-q_coords);
   p_coords = (1-f_coords).*(100-q_coords);
-  ternplot(a_coords, p_coords, q_coords, sty{:});
+  ternplot(a_coords, p_coords, q_coords, sty{:},...
+    'HandleVisibility','off');
 end
 function addRockLabels(rock_name_string, position, rotation, fc)
     annotation(gcf,'Textbox',position,...
