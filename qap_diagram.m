@@ -95,7 +95,7 @@ function qap_diagram(varargin)
       end
     end
 
-  % Add rock type labels (SEE LINE 226)
+  % Add rock type labels
   rock_names = {'Q5',{'quartz-rich','granitoid'},'alkali feldspar granite',...
     'granite','granodiorite','tonalite','Q2','quartz syenite','quartz monzonite',...
     {'quartz','monzodiorite'},'Q4','Q1','syenite','monzonite','monzodiorite','Q3'};
