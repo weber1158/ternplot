@@ -1,4 +1,4 @@
-function qap_diagram()
+function qap_diagram(varargin)
 %QAP diagram
 %
 %Description
@@ -16,20 +16,49 @@ function qap_diagram()
 % turns plot holding 'on'.
 %
 %
+%Name-Value Arguments
+% All name-value arguments are optional.
+%
+%   NAME          DEFAULT
+%   ==============================================================
+%   FontColor     [0.65 0.65 0.65]
+%
+%   GridLines     'off'
+%
+%   LineStyle     {'-','LineWidth',0.5,'Color',[0.25 0.25 0.25]}
+%
+%   VertexLabels  'off'
+%   --------------------------------------------------------------
+%
+%
 %Example: 
 % Plot the position of granodiorite with a composition of 
 % 30% quartz, 18% alkali feldspar, and 52% plagioclase on 
 % a QAP diagram
 %
-% >> quartz = 30;
-% >> kspar = 18;
-% >> plag = 52;
-% >> qap_diagram()
-% >> ternplot(kspar, plag, quartz, 'kd', 'MarkerFaceColor','r')
+%   quartz = 30;
+%   kspar = 18;
+%   plag = 52;
+%   qap_diagram()
+%   ternplot(kspar, plag, quartz, 'kd', 'MarkerFaceColor','r')
+%
 %
 %See aslo
 % ternplot
 
+  % Input parsing
+  P = inputParser();
+  addParameter(P,'FontColor',    [0.65 0.65 0.65], @(x) (isnumeric(x) & isequal(size(x),[1 3])) | (ischar(x) & length(x)==7) & strcmp(x(1),'#'));
+  addParameter(P,'GridLines',    'off',            @(x) ischar(x) & (strcmpi(x,'on') | strcmpi(x,'off')));
+  addParameter(P,'LineStyle',    {'-','LineWidth',0.5,'Color',[0.25 0.25 0.25]}, ...
+                                                   @(x) iscell(x) & isvector(x));
+  addParameter(P,'VertexLabels', 'off',            @(x) ischar(x) & (strcmpi(x,'on') | strcmpi(x,'off')));
+  parse(P,varargin{:});
+  FontColor = P.Results.FontColor;
+  GridLines = P.Results.GridLines;
+  LineStyle = P.Results.LineStyle;
+  VertLabel = P.Results.VertexLabels;
+  
   % Create axes
   ternplot(1,1,1);
 
@@ -39,25 +68,30 @@ function qap_diagram()
   f.Position=[125 125 894 544];
 
   % Remove gridlines
-  gridlines = findall(gcf,'Type','Line');
-  [gridlines.LineStyle] = deal('none');
+  if strcmpi(GridLines,'off')
+    gridlines = findall(gcf,'Type','Line');
+    [gridlines.LineStyle] = deal('none');
+  end
 
   % Add QAP axes labels
-  ternlabel({' ','Alkali Feldspar'}, {'Plagioclase',' ',' '}, {'Quartz',' ',' '});
+  if strcmpi(VertLabel,'off')
+    ternlabel({' ','Alkali Feldspar'}, {'Plagioclase',' ',' '}, {'Quartz',' ',' '});
+  else
+    vertexlabel('Plagioclase','Quartz',{'Alkali','Feldspar'})
+  end
 
   % Add granite QAP divider lines
   hold on
-    sty = {'-','LineWidth',0.5,'Color',[0.25 0.25 0.25]};
     % Add quartz lines
     for q = [5 20 60 90]
-      drawLine(q,0, q,1, sty);
+      drawLine(q,0, q,1, LineStyle);
     end
     % Add feldspar lines
     for f = [0.10 0.35 0.65 0.90]
       if f==0.65
-        drawLine(0,f, 20,f, sty);
+        drawLine(0,f, 20,f, LineStyle);
       else
-        drawLine(0,f, 60,f, sty);
+        drawLine(0,f, 60,f, LineStyle);
       end
     end
 
@@ -83,7 +117,7 @@ function qap_diagram()
                0.736017897091722 0.102896103896104 0.0447427293064877 0.0463821892393321];
   rotations = [0 0 64 0 0 -65 0 0 0 0 0 0 0 0 0 0];
   for i = 1:length(rock_names)
-    addRockLabels(rock_names{i}, positions(i,:), rotations(i))
+    addRockLabels(rock_names{i}, positions(i,:), rotations(i), FontColor)
   end
 
 end
@@ -103,21 +137,13 @@ function drawLine(q1,f1,q2,f2,sty)
   p_coords = (1-f_coords).*(100-q_coords);
   ternplot(a_coords, p_coords, q_coords, sty{:});
 end
-function addRockLabels(rock_name_string, position, rotation)
-  if nargin==2
-    annotation(gcf,'Textbox',position,...
-                'String',rock_name_string,...
-                'HorizontalAlignment','center',...
-                'EdgeColor','none',...
-                'Color',[0.65 0.65 0.65])
-  elseif nargin==3
+function addRockLabels(rock_name_string, position, rotation, fc)
     annotation(gcf,'Textbox',position,...
       'String',rock_name_string,...
       'HorizontalAlignment','center',...
       'EdgeColor','none',...
-      'Color',[0.65 0.65 0.65],...
+      'Color',fc,...
       'Rotation',rotation)
-  end
 end
 %
 % End local functions
